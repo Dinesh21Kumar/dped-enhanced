@@ -18,11 +18,15 @@ from ai_challenge.ssim import MultiScaleSSIM
 
 # tf Model Persistence: https://blog.csdn.net/sinat_32292481/article/details/77920897
 
-model_location = "ai_challenge/models_pretrained/dped_resnet_12_64"
+#model_location = "ai_challenge/models_pretrained/dped_resnet_12_64"
+model_location = "./models_pretrained/dped_resnet_12_64"
 
-compute_PSNR_SSIM = True
-compute_running_time = True
-compute_Image = False
+# compute_PSNR_SSIM = True
+# compute_running_time = True
+compute_PSNR_SSIM = False
+compute_running_time = False
+# compute_Image = False
+compute_Image = True
 
 if __name__ == "__main__":
 
@@ -51,7 +55,9 @@ if __name__ == "__main__":
             sess, g.as_graph_def(), "input,output".split(",")
         )
 
-        tf.train.write_graph(output_graph_def, 'ai_challenge/models_converted', 'model_final.pb', as_text=False)
+        # tf.train.write_graph(output_graph_def, 'ai_challenge/models_converted', 'model_final.pb', as_text=False)
+        tf.train.write_graph(output_graph_def, './models_converted', 'model.pb', as_text=False)
+
 
     print("Model was successfully saved!")
     print("\n-------------------------------------\n")
@@ -154,7 +160,7 @@ if __name__ == "__main__":
         tf.reset_default_graph()
         config = None
         with tf.Session(config=config) as sess:
-            with tf.gfile.FastGFile("ai_challenge/models_converted/model.pb", 'rb') as f:
+            with tf.gfile.FastGFile("./models_converted/model.pb", 'rb') as f:
                 graph_def = tf.GraphDef()
                 graph_def.ParseFromString(f.read())
                 tf.import_graph_def(graph_def, name='')
@@ -164,22 +170,38 @@ if __name__ == "__main__":
 
                 output = tf.cast(255.0 * tf.squeeze(tf.clip_by_value(out, 0, 1)), tf.uint8)
 
-            input_path = "ai_challenge/dped/full_size_test_images/"
+            # input_path = "ai_challenge/dped/full_size_test_images/"
+            input_path = "./dped/full_size_test_images/"
             test_images = os.listdir(input_path)
             test_images = [elem for elem in test_images if len(elem) < 10]  # filter file name
             num_test_images = len(test_images)
 
-            for j in range(num_test_images):
-                image_phone = misc.imread(input_path + test_images[j])
-                fname = os.path.splitext(os.path.basename(test_images[j]))[0]
+            # for j in range(num_test_images):
+            #     image_phone = misc.imread(input_path + test_images[j])
+            #     fname = os.path.splitext(os.path.basename(test_images[j]))[0]
+            #
+            #     image_phone = np.reshape(image_phone, [1, image_phone.shape[0], image_phone.shape[1], 3]) / 255
+            #     enhanced = sess.run(output, feed_dict={x: image_phone})
+            #     out_path = os.path.join(input_path, fname + "_enhanced_xU.png")
+            #     misc.imsave(out_path, enhanced)
+            #     # print(enhanced.shape)
+            #     image_phone = np.reshape(image_phone, enhanced.shape) * 255
+            #     # print(image_phone.shape,enhanced.shape)
+            #     before_after = np.hstack((image_phone, enhanced))
+            #     # print(before_after.shape)
+            #     # misc.imsave(os.path.join(input_path,fname+"_compare.png"),before_after)
 
-                image_phone = np.reshape(image_phone, [1, image_phone.shape[0], image_phone.shape[1], 3]) / 255
-                enhanced = sess.run(output, feed_dict={x: image_phone})
-                out_path = os.path.join(input_path, fname + "_enhanced_xU.png")
-                misc.imsave(out_path, enhanced)
-                # print(enhanced.shape)
-                image_phone = np.reshape(image_phone, enhanced.shape) * 255
-                # print(image_phone.shape,enhanced.shape)
-                before_after = np.hstack((image_phone, enhanced))
-                # print(before_after.shape)
-                # misc.imsave(os.path.join(input_path,fname+"_compare.png"),before_after)
+            image_phone = misc.imread(input_path + "food.jpg")
+            fname = os.path.splitext(os.path.basename("food.jpg"))[0]
+
+            image_phone = np.reshape(image_phone, [1, image_phone.shape[0], image_phone.shape[1], 3]) / 255
+            enhanced = sess.run(output, feed_dict={x: image_phone})
+            out_path = os.path.join(input_path, fname + "_enhanced_xU.png")
+            misc.imsave(out_path, enhanced)
+            # print(enhanced.shape)
+            image_phone = np.reshape(image_phone, enhanced.shape) * 255
+            # print(image_phone.shape,enhanced.shape)
+            before_after = np.hstack((image_phone, enhanced))
+            # print(before_after.shape)
+            # misc.imsave(os.path.join(input_path,fname+"_compare.png"),before_after)
+            print("finished")
